@@ -4,18 +4,16 @@
 TO download the repo
 `git clone https://github.com/tanchunsiong/MSDK_RawDataDemos.git`
 
-Thereafter launch `MSDK_RawDataDemos.sln` from explorer or open up from Visual Studio.
-
-Each sample folder will have a specific sample demo. (example GetAudioRawData, GetVideoRawData...)
+Thereafter launch `StutterDetBot.sln` from explorer or open up from Visual Studio.
 
 Within each sample folder you will need 2 addition items
 - Create a file named `config.json` in each folder. Here are some parameters which are expected within `config.json`
 ```
 {
-  "sdk_jwt": "aaaa.bbbbb.ccccccc",
+  "sdk_key": "",
+  "sdk_secret": "",
   "meeting_number": "123123123123",
   "passcode": "123123",
-  "video_source": "Big_Buck_Bunny_720_10s_1MB.mp4",
   "zak": ""
 }
 ```

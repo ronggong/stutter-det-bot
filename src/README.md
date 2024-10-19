@@ -30,10 +30,10 @@ This is file which is used to pass in your sdk auth signature (aka jwt token, ak
 
 ```
 {
-  "sdk_jwt": "<your_sdk_jwt>",
+  "sdk_key": "",
+  "sdk_secret": "",
   "meeting_number": <meeting_number_to_join>,
   "passcode": "<passcode>",
-  "video_source": "Big_Buck_Bunny_1080_10s_1MB.mp4",
   "zak":""
 }
 ```
@@ -56,10 +56,10 @@ The folder should look something like this
 
 ## Open and Run Project
 
-Right click on "GetAudioRawData" and "Startup as Project" in Visual Studio
+Right click on "AudioBot" and "Startup as Project" in Visual Studio
 
 
-Hit F5 or click from menu "Debug" -> "Start Debugging" in x86 or x64 to launch the application.
+Choose "Release", Hit F5 or click from menu "Debug" -> "Start Debugging" in x86 or x64 to launch the application.
 
 
 ## Error
