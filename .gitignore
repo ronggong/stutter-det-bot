@@ -7,7 +7,9 @@ sdk/CHANGELOG.md
 sdk/OSS-LICENSE.pdf
 x64/
 x86/
+arm64/
 .vs/
+vcpkg_installed/
 
 
 Debug

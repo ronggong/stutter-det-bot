@@ -1,9 +1,9 @@
-#include "windows.h"
+#include "ZoomSDKAudioRawDataDelegate.h"
 #include <cstdint>
 #include <iostream>
 #include <fstream>
 #include "rawdata/rawdata_audio_helper_interface.h"
-#include "ZoomSDKAudioRawDataDelegate.h"
+#include "windows.h"
 #include "zoom_sdk_def.h" 
 
 
@@ -11,6 +11,14 @@
 
 using namespace std;
 using namespace ZOOM_SDK_NAMESPACE;
+
+ZoomSDKAudioRawDataDelegate::ZoomSDKAudioRawDataDelegate() : manager_(std::make_unique<WorkerManager>())
+{
+	manager_->start();
+}
+ZoomSDKAudioRawDataDelegate::~ZoomSDKAudioRawDataDelegate()
+{
+}
 void ZoomSDKAudioRawDataDelegate::onOneWayAudioRawDataReceived(AudioRawData* audioRawData, uint32_t node_id)
 {
 	//std::cout << "Received onOneWayAudioRawDataReceived" << std::endl;
@@ -22,33 +30,9 @@ void ZoomSDKAudioRawDataDelegate::onShareAudioRawDataReceived(AudioRawData* data
 void ZoomSDKAudioRawDataDelegate::onOneWayInterpreterAudioRawDataReceived(AudioRawData* data_, const zchar_t* pLanguageName)
 {
 }
-void ZoomSDKAudioRawDataDelegate::onMixedAudioRawDataReceived(AudioRawData* audioRawData)
+void ZoomSDKAudioRawDataDelegate::onMixedAudioRawDataReceived(AudioRawData* data_)
 {
-	std::cout << "Received onMixedAudioRawDataReceived" << std::endl;
-	//add your code here
-
-
-	static ofstream pcmFile;
-	pcmFile.open("audio.pcm", ios::out | ios::binary | ios::app);
-
-	if (!pcmFile.is_open()) {
-		std::cout << "Failed to open wave file" << std::endl;
-		return;
-	}
-	try {
-		// Write the audio data to the file
-		pcmFile.write((char*)audioRawData->GetBuffer(), audioRawData->GetBufferLen());
-		//std::cout << "buffer length: " << audioRawData->GetBufferLen() << std::endl;
-		std::cout << "buffer : " << audioRawData->GetBuffer() << std::endl;
-
-		// Close the wave file
-		pcmFile.close();
-		pcmFile.flush();
-	}
-	catch (exception e)
-	{
-		std::cout << "Failed to write wave file" << std::endl;
-	}
-
+	AudioData audioData(data_->GetBuffer(), data_->GetBufferLen(), data_->GetSampleRate(), data_->GetChannelNum());
+	manager_->getAudioQueue().push(audioData);
 
 }

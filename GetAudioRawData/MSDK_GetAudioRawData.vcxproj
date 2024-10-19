@@ -24,7 +24,7 @@
     <ProjectGuid>{4edda96a-68c6-4a87-be56-24ef884cff40}</ProjectGuid>
     <RootNamespace>LaunchZoomMeeting</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>GetAudioRawData</ProjectName>
+    <ProjectName>AudioBot</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -92,6 +92,9 @@
     <CustomBuildAfterTargets>
     </CustomBuildAfterTargets>
     <OutDir>$(ProjectDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -178,7 +181,7 @@ xcopy /y $(ProjectDir)config.json $(OutDir)</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
@@ -203,9 +206,15 @@ xcopy /y $(ProjectDir)config.json $(OutDir)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="audio\AudioUtil.cpp" />
+    <ClCompile Include="audio\fft.cpp" />
     <ClCompile Include="MeetingParticipantsCtrlEventListener.cpp" />
     <ClCompile Include="MeetingRecordingCtrlEventListener.cpp" />
+    <ClCompile Include="engine\Sed.cpp" />
+    <ClCompile Include="engine\SileroVad.cpp" />
     <ClCompile Include="WebService.cpp" />
+    <ClCompile Include="WorkerManager.cpp" />
+    <ClCompile Include="ZoomAuthenticator.cpp" />
     <ClCompile Include="ZoomSDKAudioRawDataDelegate.cpp" />
     <ClCompile Include="AuthServiceEventListener.cpp" />
     <ClCompile Include="MSDK_GetAudioRawData.cpp" />
@@ -213,18 +222,22 @@ xcopy /y $(ProjectDir)config.json $(OutDir)</Command>
     <ClCompile Include="NetworkConnectionHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="audio\AudioUtil.h" />
+    <ClInclude Include="audio\fbank.h" />
+    <ClInclude Include="audio\fft.h" />
     <ClInclude Include="MeetingParticipantsCtrlEventListener.h" />
     <ClInclude Include="MeetingRecordingCtrlEventListener.h" />
+    <ClInclude Include="engine\Sed.h" />
+    <ClInclude Include="engine\SileroVad.h" />
+    <ClInclude Include="TCPClient.h" />
+    <ClInclude Include="ThreadSafeQueue.h" />
     <ClInclude Include="WebService.h" />
+    <ClInclude Include="WorkerManager.h" />
+    <ClInclude Include="ZoomAuthenticator.h" />
     <ClInclude Include="ZoomSDKAudioRawDataDelegate.h" />
     <ClInclude Include="AuthServiceEventListener.h" />
     <ClInclude Include="MeetingServiceEventListener.h" />
     <ClInclude Include="NetworkConnectionHandler.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Media Include="Big_Buck_Bunny_720_10s_1MB.mp4">
-      <DeploymentContent>true</DeploymentContent>
-    </Media>
   </ItemGroup>
   <ItemGroup>
     <None Include="config.json" />

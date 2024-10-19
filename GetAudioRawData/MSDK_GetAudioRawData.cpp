@@ -2,11 +2,11 @@
 //
 
 #include <iostream>
+#include "ZoomSDKAudioRawDataDelegate.h"
 #include <windows.h>
 #include <zoom_sdk.h>
 #include <meeting_service_interface.h>
 #include <rawdata/zoom_rawdata_api.h>
-#include <rawdata/rawdata_video_source_helper_interface.h>
 #include <setting_service_interface.h>
 #include "network_connection_handler_interface.h"
 #include "AuthServiceEventListener.h"
@@ -17,11 +17,11 @@
 #include <fstream>
 #include "json\json.h"
 #include <sstream>
-#include "ZoomSDKAudioRawDataDelegate.h"
 #include <meeting_service_components/meeting_recording_interface.h>
 #include <meeting_service_components/meeting_participants_ctrl_interface.h>
 #include <thread>
 #include <chrono>
+#include "ZoomAuthenticator.h"
 
 #include "MeetingRecordingCtrlEventListener.h"
 #include "WebService.h"
@@ -36,11 +36,10 @@ IAuthService* authService;
 INetworkConnectionHelper* network_connection_helper;
 ISettingService* settingService;
 
-wstring sdk_jwt;
+string sdk_key;
+string sdk_secret;
 UINT64 meeting_number;
 wstring passcode;
-string video_source = "";
-constexpr auto DEFAULT_VIDEO_SOURCE = "Big_Buck_Bunny_1080_10s_1MB.mp4";
 constexpr auto CONFIG_FILE = "config.json";
 
 bool isJWTWebService = false;
@@ -216,13 +215,12 @@ void LoadConfig() {
 	else {
 		printf("Didn't find config.json file.\n");
 	}
-	if (!isConfigFileOpened || config["sdk_jwt"].empty() || config["sdk_jwt"].asString() == "") {
-		sdk_jwt = QuestionInput("SDK JWT: ");
-	}
-	else {
-		sdk_jwt = StringToWString(config["sdk_jwt"].asString());
-		printf("Found \"SDK JWT\" from %s: \n\"%s\"\n", CONFIG_FILE, WStringToString(sdk_jwt).c_str());
-	}
+
+	sdk_key = config["sdk_key"].asString();
+	sdk_secret = config["sdk_secret"].asString();
+
+	printf("sdk_key %s, sdk_secret %s\n", sdk_key.c_str(), sdk_secret.c_str());
+
 	bool toQuestionForMeetingNumber = false;
 	if (!isConfigFileOpened || config["meeting_number"].empty() || config["meeting_number"].asString() == "")
 		toQuestionForMeetingNumber = true;
@@ -268,17 +266,6 @@ void LoadConfig() {
 	else {
 		passcode = StringToWString(config["passcode"].asString());
 		printf("Found \"Passcode\" from %s: \"%s\"\n", CONFIG_FILE, WStringToString(passcode).c_str());
-	}
-	if (!isConfigFileOpened || config["video_source"].empty() || config["video_source"].asString() == "") {
-		video_source = WStringToString(QuestionInput("Video Source (file path or URL): "));
-	}
-	else {
-		video_source = config["video_source"].asString();
-		printf("Found \"Video Source\" from %s: \"%s\"\n", CONFIG_FILE, video_source.c_str());
-	}
-	if (video_source == "") {
-		video_source = DEFAULT_VIDEO_SOURCE;
-		printf("No video source provided, use the default video source: %s.\n", video_source.c_str());
 	}
 
 }
@@ -381,13 +368,12 @@ void SDKAuth()
 	AuthContext authContext;
 	if ((err = authService->SetEvent(new AuthServiceEventListener(JoinMeeting))) != SDKError::SDKERR_SUCCESS) ShowErrorAndExit(err);
 	std::cout << "AuthServiceEventListener added." << std::endl;
-	//authContext.jwt_token = sdk_jwt.c_str();
 	if (isJWTWebService) {
 		authContext.jwt_token = GetSignatureFromWebService();
-
-
 	}
 	else {
+		auto sdk_jwt = ZoomAuthenticator::getJwt(sdk_key, sdk_secret);
+		printf("Found \"SDK JWT\" \"%s\"\n", WStringToString(sdk_jwt).c_str());
 		authContext.jwt_token = sdk_jwt.c_str();
 	}
 	if ((err = authService->SDKAuth(authContext)) != SDKError::SDKERR_SUCCESS) ShowErrorAndExit(err);

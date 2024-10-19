@@ -1,0 +1,10 @@
+{
+  "dependencies": [
+    "curl",
+    "jsoncpp",
+    "jwt-cpp",
+    "openssl",
+    "soxr",
+    "onnxruntime-gpu"
+  ]
+}
