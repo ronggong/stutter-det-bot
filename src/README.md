@@ -18,15 +18,20 @@ cd vcpkg
 ./vcpkg integrate install --vcpkg-root c:\vcpkg
 ```
 
-### Installing cURL and JSON Parser using vckpg
+### Installing dependencies
+Run the following commands in command prompt or powershell
 
-`./vcpkg install curl`
+```
+$env:VCPKG_ROOT = "C:\path\to\vcpkg"
+$env:PATH = "$env:VCPKG_ROOT;$env:PATH"
+```
 
-`./vcpkg install jsoncpp`
+Install curl, jsoncpp, jwt-cpp, openssl, soxr, websocketpp and onnxruntime-gpu
+`./vcpkg add port curl`
 
 ## Add a configuration file named `config.json`
 
-This is file which is used to pass in your sdk auth signature (aka jwt token, aka auth signature)
+This is file which is used to pass in your sdk auth signature (aka sdk_key and sdk_secret, aka auth signature)
 
 ```
 {
