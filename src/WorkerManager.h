@@ -6,7 +6,8 @@
 #include <memory>
 #include <queue>
 #include "audio/AudioUtil.h"
-#include "TCPClient.h"
+#include "web/WSSender.h"
+
 
 class VadIterator;
 class Sed;
@@ -26,14 +27,14 @@ public:
     ThreadSafeQueue<AudioData>& getAudioQueue();
 
 private:
-    void processAudioData();
+	void processAudioData(WebSocketSender* wsSender);
 
     std::thread audioThread_;
     std::atomic<bool> running_;
 
     ThreadSafeQueue<AudioData> audioDataQueue_;
 
-    Resampler resampler_;
+    std::unique_ptr<Resampler> resampler_;
     std::unique_ptr<VadIterator> vad_;
     std::queue<float> vadData_;
     std::vector<float> wavData_;
@@ -49,5 +50,6 @@ private:
     std::unique_ptr<Sed> sed_;
     std::vector<float> sedThreshold_{ 0.42, 0.35, 0.37, 0.37, 0.4 };
 
-    std::unique_ptr<TCPClient> client_;
+    //std::unique_ptr<TCPClient> client_;
+	std::unique_ptr<WebSocketSender> wsSender_;
 };

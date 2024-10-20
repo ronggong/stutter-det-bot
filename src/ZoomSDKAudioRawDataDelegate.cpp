@@ -34,5 +34,4 @@ void ZoomSDKAudioRawDataDelegate::onMixedAudioRawDataReceived(AudioRawData* data
 {
 	AudioData audioData(data_->GetBuffer(), data_->GetBufferLen(), data_->GetSampleRate(), data_->GetChannelNum());
 	manager_->getAudioQueue().push(audioData);
-
 }

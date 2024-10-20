@@ -12,8 +12,11 @@ namespace fs = std::experimental::filesystem;
 
 WorkerManager::WorkerManager()
     : running_(false)
-    , resampler_(32000, 16000, 1)
-{}
+    , wsSender_(std::make_unique<WebSocketSender>())
+{
+    std::string uri = "ws://localhost:8080";
+    wsSender_->start(uri);
+}
 
 WorkerManager::~WorkerManager() {
     stop();
@@ -21,20 +24,23 @@ WorkerManager::~WorkerManager() {
 
 void WorkerManager::start() {
     running_ = true;
-    audioThread_ = std::thread(&WorkerManager::processAudioData, this);
+	audioThread_ = std::thread(&WorkerManager::processAudioData, this, wsSender_.get());
 }
 
 void WorkerManager::stop() {
     running_ = false;
     if (audioThread_.joinable()) audioThread_.join();
+	wsSender_->join();
 }
 
 ThreadSafeQueue<AudioData>& WorkerManager::getAudioQueue() {
     return audioDataQueue_;
 }
 
-void WorkerManager::processAudioData() {
+void WorkerManager::processAudioData(WebSocketSender* wsSender) {
     if (!vad_) {
+        resampler_ = std::make_unique<Resampler>(32000, 16000, 1);
+
         auto sileroVadPath = fs::current_path() / "models" / "silero_vad.onnx";
         if (!fs::exists(sileroVadPath)) {
             std::cerr << "SileroVad model not found in " << sileroVadPath.string() << std::endl;
@@ -69,9 +75,9 @@ void WorkerManager::processAudioData() {
         std::vector<float> floatData;
         AudioUtil::convertPCM16ToFloat(rawData.data_, floatData);
 
-        size_t resampledSz = size_t(floatData.size() * resampler_.getRatio());
+        size_t resampledSz = size_t(floatData.size() * resampler_->getRatio());
         float* resampledData = new float[resampledSz];
-        resampler_.process(floatData.data(), floatData.size(), resampledData, resampledSz);
+        resampler_->process(floatData.data(), floatData.size(), resampledData, resampledSz);
 
         // add samples to vad buffer
         // resampleSz=160, vadWindowSize=512
@@ -138,6 +144,7 @@ void WorkerManager::processAudioData() {
                 std::cout << proba << std::endl;
                 if (!sendLabel.empty()) {
                     sendLabel.pop_back();
+					wsSender->sendMessage(sendLabel);
                     //client_->sendMessage(sendLabel);
                 }
 

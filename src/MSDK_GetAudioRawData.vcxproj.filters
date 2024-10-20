@@ -57,6 +57,9 @@
     <ClCompile Include="WorkerManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="web\WSSender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AuthServiceEventListener.h">
@@ -104,7 +107,10 @@
     <ClInclude Include="WorkerManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TCPClient.h">
+    <ClInclude Include="web\TCPClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="web\WSSender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -3,8 +3,9 @@
     "curl",
     "jsoncpp",
     "jwt-cpp",
+    "onnxruntime-gpu",
     "openssl",
     "soxr",
-    "onnxruntime-gpu"
+    "websocketpp"
   ]
 }

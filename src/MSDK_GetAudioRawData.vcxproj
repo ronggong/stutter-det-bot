@@ -213,6 +213,7 @@ xcopy /y $(ProjectDir)config.json $(OutDir)</Command>
     <ClCompile Include="engine\Sed.cpp" />
     <ClCompile Include="engine\SileroVad.cpp" />
     <ClCompile Include="WebService.cpp" />
+    <ClCompile Include="web\WSSender.cpp" />
     <ClCompile Include="WorkerManager.cpp" />
     <ClCompile Include="ZoomAuthenticator.cpp" />
     <ClCompile Include="ZoomSDKAudioRawDataDelegate.cpp" />
@@ -229,9 +230,10 @@ xcopy /y $(ProjectDir)config.json $(OutDir)</Command>
     <ClInclude Include="MeetingRecordingCtrlEventListener.h" />
     <ClInclude Include="engine\Sed.h" />
     <ClInclude Include="engine\SileroVad.h" />
-    <ClInclude Include="TCPClient.h" />
+    <ClInclude Include="web\TCPClient.h" />
     <ClInclude Include="ThreadSafeQueue.h" />
     <ClInclude Include="WebService.h" />
+    <ClInclude Include="web\WSSender.h" />
     <ClInclude Include="WorkerManager.h" />
     <ClInclude Include="ZoomAuthenticator.h" />
     <ClInclude Include="ZoomSDKAudioRawDataDelegate.h" />
