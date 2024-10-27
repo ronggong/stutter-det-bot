@@ -12,9 +12,9 @@
 using namespace std;
 using namespace ZOOM_SDK_NAMESPACE;
 
-ZoomSDKAudioRawDataDelegate::ZoomSDKAudioRawDataDelegate() : manager_(std::make_unique<WorkerManager>())
+ZoomSDKAudioRawDataDelegate::ZoomSDKAudioRawDataDelegate(WebSocketSender* wsSender) : manager_(std::make_unique<WorkerManager>())
 {
-	manager_->start();
+	manager_->start(wsSender);
 }
 ZoomSDKAudioRawDataDelegate::~ZoomSDKAudioRawDataDelegate()
 {

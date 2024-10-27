@@ -12,11 +12,13 @@
 using namespace std;
 using namespace ZOOMSDK;
 
+class WebSocketSender;
+
 class ZoomSDKAudioRawDataDelegate :
 	public IZoomSDKAudioRawDataDelegate
 {
 public:
-	ZoomSDKAudioRawDataDelegate();
+	ZoomSDKAudioRawDataDelegate(WebSocketSender* wsSender);
 	virtual ~ZoomSDKAudioRawDataDelegate();
 	virtual void onMixedAudioRawDataReceived(AudioRawData* data_);
 	virtual void onOneWayAudioRawDataReceived(AudioRawData* data_, uint32_t node_id);

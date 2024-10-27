@@ -10,27 +10,23 @@
 namespace fs = std::experimental::filesystem;
 #endif
 
+
 WorkerManager::WorkerManager()
-    : running_(false)
-    , wsSender_(std::make_unique<WebSocketSender>())
-{
-    std::string uri = "ws://localhost:8080";
-    wsSender_->start(uri);
-}
+    : running_(false) {}
 
 WorkerManager::~WorkerManager() {
     stop();
 }
 
-void WorkerManager::start() {
+void WorkerManager::start(WebSocketSender* wsSender) {
     running_ = true;
-	audioThread_ = std::thread(&WorkerManager::processAudioData, this, wsSender_.get());
+	audioThread_ = std::thread(&WorkerManager::processAudioData, this, wsSender);
 }
 
 void WorkerManager::stop() {
     running_ = false;
     if (audioThread_.joinable()) audioThread_.join();
-	wsSender_->join();
+	//wsSender_->join();
 }
 
 ThreadSafeQueue<AudioData>& WorkerManager::getAudioQueue() {
@@ -53,8 +49,6 @@ void WorkerManager::processAudioData(WebSocketSender* wsSender) {
         fbank_ = std::make_unique<wenet::Fbank>(80, 16000, 400, 160); // 25ms frame, 10ms shift
 
         speechBuffer_ = { std::queue<float>(), 0, 2 * vad_->get_max_speech_samples() };
-
-        //client_ = std::make_unique<TCPClient>("127.0.0.1", 12345);
     }
 
     if (!sed_) {
@@ -145,7 +139,6 @@ void WorkerManager::processAudioData(WebSocketSender* wsSender) {
                 if (!sendLabel.empty()) {
                     sendLabel.pop_back();
 					wsSender->sendMessage(sendLabel);
-                    //client_->sendMessage(sendLabel);
                 }
 
                 /*

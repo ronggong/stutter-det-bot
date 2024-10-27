@@ -5,10 +5,12 @@
 WebSocketSender::WebSocketSender() {
     // Initialize ASIO transport
     wsClient.init_asio();
+}
 
+void WebSocketSender::setHandlers(const std::string& pairId) {
     // Set up connection handler
-    wsClient.set_open_handler([this](websocketpp::connection_hdl hdl) {
-        handleOpen(hdl);
+    wsClient.set_open_handler([this, pairId](websocketpp::connection_hdl hdl) {
+        handleOpen(hdl, pairId);
         });
 
     // Set up fail handler
@@ -63,13 +65,13 @@ void WebSocketSender::sendMessage(const std::string& message) {
 }
 
 // Function called when WebSocket connection is opened
-void WebSocketSender::handleOpen(websocketpp::connection_hdl hdl) {
+void WebSocketSender::handleOpen(websocketpp::connection_hdl hdl, const std::string& pairId) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     std::cout << "Connected to the server, registering as sender..." << std::endl;
 	connectionHandle = hdl;
 	isConnected = true;
 
-    // Register as a sender
-    wsClient.send(hdl, "sender", websocketpp::frame::opcode::text);
+	// Register as a sender, with pairId = 0, as the server can handle multiple senders
+    wsClient.send(hdl, "sender:" + pairId, websocketpp::frame::opcode::text);
 }

@@ -15,6 +15,7 @@ public:
     WebSocketSender();
 
     void run(const std::string& uri);
+    void setHandlers(const std::string& pairId);
     void sendMessage(const std::string& message);
     void start(const std::string& uri);
     void join();
@@ -27,7 +28,7 @@ private:
     std::thread wsThread;
 
     // Function called when WebSocket connection is opened
-    void handleOpen(websocketpp::connection_hdl hdl);
+    void handleOpen(websocketpp::connection_hdl hdl, const std::string& pairId);
 };
 
 //int main() {

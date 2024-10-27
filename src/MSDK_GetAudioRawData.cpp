@@ -25,6 +25,7 @@
 
 #include "MeetingRecordingCtrlEventListener.h"
 #include "WebService.h"
+#include "web/WSSender.h"
 
 using namespace std;
 using namespace Json;
@@ -40,12 +41,16 @@ string sdk_key;
 string sdk_secret;
 UINT64 meeting_number;
 wstring passcode;
+string ws_uri;
+string pair_id = "0";
 constexpr auto CONFIG_FILE = "config.json";
 
 bool isJWTWebService = false;
 
 //references for audio raw data
-ZoomSDKAudioRawDataDelegate* audio_source = new ZoomSDKAudioRawDataDelegate();
+WebSocketSender* ws_sender = new WebSocketSender();
+ZoomSDKAudioRawDataDelegate* audio_source = new ZoomSDKAudioRawDataDelegate(ws_sender);
+
 IZoomSDKAudioRawDataHelper* audioHelper;
 
 IMeetingRecordingController* m_pRecordController;
@@ -268,6 +273,8 @@ void LoadConfig() {
 		printf("Found \"Passcode\" from %s: \"%s\"\n", CONFIG_FILE, WStringToString(passcode).c_str());
 	}
 
+	ws_uri = config["ws_uri"].asString();
+	pair_id = config["pair_id"].asString();
 }
 
 /// <summary>
@@ -405,6 +412,12 @@ void InitSDK()
 int main()
 {
 	LoadConfig();
+
+	// Start websocket client
+	ws_sender->setHandlers(pair_id);
+	ws_sender->start(ws_uri);
+	printf("WebSocket client started with pair Id \"%s\" and connect to server \"%s\".\n", pair_id.c_str(), ws_uri.c_str());
+
 	InitSDK();
 
 	int bRet = false;
@@ -424,6 +437,8 @@ int main()
 	if (meetingService) DestroyMeetingService(meetingService);
 	if (authService) DestroyAuthService(authService);
 	if (network_connection_helper) DestroyNetworkConnectionHelper(network_connection_helper);
+	// WebSocket sender
+	if (ws_sender) ws_sender->join();
 	CleanUPSDK(); // must do this, or it will crash. 
 }
 
