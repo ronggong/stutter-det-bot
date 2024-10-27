@@ -14,6 +14,8 @@ Within each sample folder you will need 2 addition items
   "sdk_secret": "",
   "meeting_number": "123123123123",
   "passcode": "123123",
+  "ws_uri": "ws://localhost:8080",
+  "pair_id": "0",
   "zak": ""
 }
 ```

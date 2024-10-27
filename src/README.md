@@ -39,6 +39,8 @@ This is file which is used to pass in your sdk auth signature (aka sdk_key and s
   "sdk_secret": "",
   "meeting_number": <meeting_number_to_join>,
   "passcode": "<passcode>",
+  "ws_uri": "ws://localhost:8080",
+  "pair_id": "0",
   "zak":""
 }
 ```
