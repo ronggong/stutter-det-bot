@@ -8,6 +8,20 @@ WebSocketSender::WebSocketSender() {
 }
 
 void WebSocketSender::setHandlers(const std::string& pairId) {
+	pairId_ = pairId;
+    // Set up TLS handler to manage SSL context
+    wsClient.set_tls_init_handler([](websocketpp::connection_hdl) {
+        auto ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(
+            boost::asio::ssl::context::tlsv12_client
+        );
+
+        // Configure SSL context as needed (e.g., for certificates)
+        //ctx->set_verify_mode(boost::asio::ssl::verify_peer);
+        ctx->set_verify_mode(boost::asio::ssl::verify_none); // Not recommended for production
+        ctx->set_default_verify_paths();
+
+        return ctx;    
+    });
     // Set up connection handler
     wsClient.set_open_handler([this, pairId](websocketpp::connection_hdl hdl) {
         handleOpen(hdl, pairId);
@@ -56,8 +70,9 @@ void WebSocketSender::sendMessage(const std::string& message) {
     std::lock_guard<std::mutex> lock(mutex_);  // Lock the mutex to ensure thread safety
     if (isConnected) {
         // Send the message to the server
-        wsClient.send(connectionHandle, message, websocketpp::frame::opcode::text);
-        std::cout << "Message sent: " << message << std::endl;
+        auto msg = message + ":" + pairId_;
+        wsClient.send(connectionHandle, msg, websocketpp::frame::opcode::text);
+        std::cout << "Message sent: " << msg << std::endl;
     }
     else {
         std::cerr << "Cannot send message, WebSocket is not connected yet." << std::endl;

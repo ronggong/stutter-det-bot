@@ -31,7 +31,7 @@ Install curl, jsoncpp, jwt-cpp, openssl, soxr, websocketpp and onnxruntime-gpu
 
 ## Add a configuration file named `config.json`
 
-This is file which is used to pass in your sdk auth signature (aka sdk_key and sdk_secret, aka auth signature)
+This is file which is used to pass in your sdk auth signature (aka sdk_key and sdk_secret, aka auth signature). pair_id is used for identifying the Websocket client. user_name is the one the bot would like to work with.
 
 ```
 {
@@ -41,6 +41,7 @@ This is file which is used to pass in your sdk auth signature (aka sdk_key and s
   "passcode": "<passcode>",
   "ws_uri": "ws://localhost:8080",
   "pair_id": "0",
+  "user_name": "",
   "zak":""
 }
 ```

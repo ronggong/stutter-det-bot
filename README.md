@@ -16,6 +16,7 @@ Within each sample folder you will need 2 addition items
   "passcode": "123123",
   "ws_uri": "ws://localhost:8080",
   "pair_id": "0",
+  "user_name": "",
   "zak": ""
 }
 ```

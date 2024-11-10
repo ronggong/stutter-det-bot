@@ -230,6 +230,7 @@ xcopy /y $(ProjectDir)config.json $(OutDir)</Command>
     <ClInclude Include="MeetingRecordingCtrlEventListener.h" />
     <ClInclude Include="engine\Sed.h" />
     <ClInclude Include="engine\SileroVad.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="web\TCPClient.h" />
     <ClInclude Include="ThreadSafeQueue.h" />
     <ClInclude Include="WebService.h" />

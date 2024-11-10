@@ -43,9 +43,12 @@ UINT64 meeting_number;
 wstring passcode;
 string ws_uri;
 string pair_id = "0";
+string user_name;
 constexpr auto CONFIG_FILE = "config.json";
 
 bool isJWTWebService = false;
+
+IMeetingParticipantsController* m_pParticipantsController;
 
 //references for audio raw data
 WebSocketSender* ws_sender = new WebSocketSender();
@@ -54,7 +57,6 @@ ZoomSDKAudioRawDataDelegate* audio_source = new ZoomSDKAudioRawDataDelegate(ws_s
 IZoomSDKAudioRawDataHelper* audioHelper;
 
 IMeetingRecordingController* m_pRecordController;
-IMeetingParticipantsController* m_pParticipantsController;
 
 inline bool IsInMeeting(ZOOM_SDK_NAMESPACE::MeetingStatus status)
 {
@@ -275,6 +277,7 @@ void LoadConfig() {
 
 	ws_uri = config["ws_uri"].asString();
 	pair_id = config["pair_id"].asString();
+	user_name = config["user_name"].asString();
 }
 
 /// <summary>
@@ -336,6 +339,9 @@ void JoinMeeting()
 	if ((err = meetingService->Join(joinMeetingParam)) != SDKError::SDKERR_SUCCESS) ShowErrorAndExit(err);
 	else std::cout << "Joining Meeting..." << std::endl;
 
+	// participant controller in audio source to identify user
+	audio_source->setParticipantsController(m_pParticipantsController);
+	audio_source->setUserName(user_name);
 
 	//ZOOM_SDK_NAMESPACE::StartParam startMeetingParam;
 	//StartParam4WithoutLogin startMeetingWithoutLoginParam;

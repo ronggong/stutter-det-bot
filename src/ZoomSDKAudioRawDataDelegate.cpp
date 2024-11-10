@@ -4,25 +4,28 @@
 #include <fstream>
 #include "rawdata/rawdata_audio_helper_interface.h"
 #include "windows.h"
-#include "zoom_sdk_def.h" 
+#include "zoom_sdk_def.h"
+#include "Utils.h"
 
 
 
-
-using namespace std;
-using namespace ZOOM_SDK_NAMESPACE;
-
-ZoomSDKAudioRawDataDelegate::ZoomSDKAudioRawDataDelegate(WebSocketSender* wsSender) : manager_(std::make_unique<WorkerManager>())
+ZoomSDKAudioRawDataDelegate::ZoomSDKAudioRawDataDelegate(WebSocketSender* wsSender)
+	: manager_(std::make_unique<WorkerManager>())
 {
 	manager_->start(wsSender);
 }
 ZoomSDKAudioRawDataDelegate::~ZoomSDKAudioRawDataDelegate()
 {
 }
-void ZoomSDKAudioRawDataDelegate::onOneWayAudioRawDataReceived(AudioRawData* audioRawData, uint32_t node_id)
+void ZoomSDKAudioRawDataDelegate::onOneWayAudioRawDataReceived(AudioRawData* data_, uint32_t node_id)
 {
-	//std::cout << "Received onOneWayAudioRawDataReceived" << std::endl;
-	//add your code here
+	if (participantsController_ != nullptr) {
+		auto userInfo = participantsController_->GetUserByUserID(node_id);
+		if (wcharToString(userInfo->GetUserName()) == userName_) {
+			AudioData audioData(data_->GetBuffer(), data_->GetBufferLen(), data_->GetSampleRate(), data_->GetChannelNum());
+			manager_->getAudioQueue().push(audioData);
+		}
+	}
 }
 void ZoomSDKAudioRawDataDelegate::onShareAudioRawDataReceived(AudioRawData* data_)
 {
@@ -32,6 +35,4 @@ void ZoomSDKAudioRawDataDelegate::onOneWayInterpreterAudioRawDataReceived(AudioR
 }
 void ZoomSDKAudioRawDataDelegate::onMixedAudioRawDataReceived(AudioRawData* data_)
 {
-	AudioData audioData(data_->GetBuffer(), data_->GetBufferLen(), data_->GetSampleRate(), data_->GetChannelNum());
-	manager_->getAudioQueue().push(audioData);
 }

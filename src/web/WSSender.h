@@ -2,13 +2,13 @@
 
 #define _WEBSOCKETPP_CPP11_RANDOM_DEVICE_
 
-#include <websocketpp/config/asio_no_tls_client.hpp>
+#include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
 #include <iostream>
 #include <string>
 
 // Alias for WebSocket++ client
-typedef websocketpp::client<websocketpp::config::asio_client> client;
+typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
 
 class WebSocketSender {
 public:
@@ -26,6 +26,7 @@ private:
     std::mutex mutex_;  // Mutex to protect shared resources
     bool isConnected;
     std::thread wsThread;
+    std::string pairId_ = "0";
 
     // Function called when WebSocket connection is opened
     void handleOpen(websocketpp::connection_hdl hdl, const std::string& pairId);
