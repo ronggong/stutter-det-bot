@@ -1,5 +1,5 @@
 #include "WorkerManager.h"
-#include "engine/SileroVad.h"
+//#include "engine/SileroVad.h"
 #include "audio/fbank.h"
 #include "engine/Sed.h"
 #include <stdexcept>
@@ -34,24 +34,14 @@ ThreadSafeQueue<AudioData>& WorkerManager::getAudioQueue() {
 }
 
 void WorkerManager::processAudioData(WebSocketSender* wsSender) {
-    if (!vad_) {
+
+    if (!sed_) {
         resampler_ = std::make_unique<Resampler>(32000, 16000, 1);
 
-        auto sileroVadPath = fs::current_path() / "models" / "silero_vad.onnx";
-        if (!fs::exists(sileroVadPath)) {
-            std::cerr << "SileroVad model not found in " << sileroVadPath.string() << std::endl;
-            return;
-        }
-
-        vad_ = std::make_unique<VadIterator>(sileroVadPath.generic_wstring());
-        speechTimestamps_ = vad_->get_speech_timestamps().size();
+        speechBuffer_ = { std::queue<float>(), 0, 16000 * 5 };
 
         fbank_ = std::make_unique<wenet::Fbank>(80, 16000, 400, 160); // 25ms frame, 10ms shift
 
-        speechBuffer_ = { std::queue<float>(), 0, 2 * vad_->get_max_speech_samples() };
-    }
-
-    if (!sed_) {
         auto sedPath = fs::current_path() / "models" / "sed.quant.onnx";
         if (!fs::exists(sedPath)) {
             std::cerr << "Sed model not found in " << sedPath.string() << std::endl;
@@ -73,73 +63,47 @@ void WorkerManager::processAudioData(WebSocketSender* wsSender) {
         float* resampledData = new float[resampledSz];
         resampler_->process(floatData.data(), floatData.size(), resampledData, resampledSz);
 
-        // add samples to vad buffer
-        // resampleSz=160, vadWindowSize=512
-        int64_t vadWindowSize = vad_->get_window_size_samples();
-        for (size_t i = 0; i < resampledSz; i++) {
-            vadData_.push(resampledData[i]);
-        }
+		for (size_t i = 0; i < resampledSz; i++) {
+			speechBuffer_.data.push(resampledData[i] * 32768);
+			//wavData_.push_back(resampledData[i] * 32768);
+		}
 
-        if (vadData_.size() >= vadWindowSize) {
-            std::vector<float> vadData;
-            for (size_t i = 0; i < vadWindowSize; i++) {
-                vadData.push_back(vadData_.front());
-                // make sure these are synced with vad data
-                wavData_.push_back(vadData_.front() * 32768);
-                speechBuffer_.data.push(vadData_.front() * 32768);
-                vadData_.pop();
+		if (speechBuffer_.data.size() >= speechBuffer_.maxSz) {
+            // charge speech samples
+            std::vector<float> fbankData;
+            for (size_t i = 0; i < speechBuffer_.maxSz; i++) {
+                fbankData.push_back(speechBuffer_.data.front());
+                speechBuffer_.data.pop();
             }
-            vad_->predict(vadData);
-            // We have a speech segment detected
-            if (vad_->get_speech_timestamps().size() > speechTimestamps_) {
-                speechTimestamps_ = vad_->get_speech_timestamps().size();
-                auto start = vad_->get_speech_timestamps().back().start;
-                auto end = vad_->get_speech_timestamps().back().end;
-                auto duration = end - start;
+            std::vector<std::vector<float>> feat;
+            fbank_->Compute(fbankData, &feat);
+            auto sedProb = sed_->predict(feat);
 
-                if (speechBuffer_.offset > start) {
-                    throw std::runtime_error("Speech buffer start index is greater than the detected speech segment start index");
-                }
-                auto relStart = start - speechBuffer_.offset;
-                if (relStart + duration > speechBuffer_.data.size()) {
-                    std::cout << "Speech buffer size " << speechBuffer_.data.size() << " start " << relStart << " duration " << duration << std::endl;
-                    throw std::runtime_error("Speech segment duration is greater than the speech buffer size");
-                }
+            std::cout << "Segment start " << speechBuffer_.offset << " end " <<
+                speechBuffer_.offset + speechBuffer_.maxSz <<
+                " fbank frames " << feat.size() << " Sed prob ";
 
-                for (size_t i = 0; i < relStart; i++) {
-                    speechBuffer_.data.pop();
-                }
+            speechBuffer_.offset += speechBuffer_.maxSz;
 
-                // charge speech samples
-                std::vector<float> fbankData;
-                for (size_t i = 0; i < duration; i++) {
-                    fbankData.push_back(speechBuffer_.data.front());
-                    speechBuffer_.data.pop();
-                }
-                std::vector<std::vector<float>> feat;
-                fbank_->Compute(fbankData, &feat);
-                auto sedProb = sed_->predict(feat);
+            if (sedProb.size() != sedThreshold_.size()) {
+                throw std::runtime_error("Sed prob size is not equal to the threshold size");
+            }
 
-                speechBuffer_.offset = end;
+            std::string proba;
+            std::string sendLabel;
+            for (size_t i = 0; i < sedProb.size(); i++) {
+                proba += std::to_string(sedProb[i]) + " ";
+                if (sedProb[i] > sedThreshold_[i]) {
+                    sendLabel += Sed::sed_labels.at(i) + " ";
+                }
+            }
+            std::cout << proba << std::endl;
+            if (!sendLabel.empty()) {
+                sendLabel.pop_back();
+                wsSender->sendMessage(sendLabel);
+            }
 
-                std::cout << "Speech segment detected start " << start << " dur " << duration << " fbank frames " << feat.size() << " Sed prob ";
-                if (sedProb.size() != sedThreshold_.size()) {
-                    throw std::runtime_error("Sed prob size is not equal to the threshold size");
-                }
-
-                std::string proba;
-                std::string sendLabel;
-                for (size_t i = 0; i < sedProb.size(); i++) {
-                    proba += std::to_string(sedProb[i]) + " ";
-                    if (sedProb[i] > sedThreshold_[i]) {
-                        sendLabel += Sed::sed_labels.at(i) + " ";
-                    }
-                }
-                std::cout << proba << std::endl;
-                if (!sendLabel.empty()) {
-                    sendLabel.pop_back();
-					wsSender->sendMessage(sendLabel);
-                }
+		}
 
                 /*
                 auto testWav = fs::current_path() / ("output_" + std::to_string(start) + "_" + std::to_string(end) +  ".wav");
@@ -150,8 +114,6 @@ void WorkerManager::processAudioData(WebSocketSender* wsSender) {
                 const int16_t* data = wavData.data();
                 writeWAVData(testWav.generic_string().c_str(), data, wavData.size() * 1 * sizeof(data[0]), 16000, 1);
                 */
-            }
-        }
 
         delete[] resampledData;
 
@@ -167,9 +129,9 @@ void WorkerManager::processAudioData(WebSocketSender* wsSender) {
                 const int16_t* data = wavData.data();
                 writeWAVData(testWav.generic_string().c_str(), data, wavData.size() * 1 * sizeof(data[0]), 16000, 1);
                 wavData_.clear();
+				std::cout << "Wav file written to " << testWav.string() << std::endl;
             }
         }
         */
-
     }
 }

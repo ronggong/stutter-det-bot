@@ -8,7 +8,7 @@
 #include "audio/AudioUtil.h"
 #include "web/WSSender.h"
 
-class VadIterator;
+//class VadIterator;
 class Sed;
 
 namespace wenet {
@@ -34,10 +34,10 @@ private:
     ThreadSafeQueue<AudioData> audioDataQueue_;
 
     std::unique_ptr<Resampler> resampler_;
-    std::unique_ptr<VadIterator> vad_;
-    std::queue<float> vadData_;
+    //std::unique_ptr<VadIterator> vad_;
+    //std::queue<float> vadData_;
     std::vector<float> wavData_;
-    int speechTimestamps_ = -1;
+    //int speechTimestamps_ = -1;
     std::unique_ptr<wenet::Fbank> fbank_;
 
     struct SpeechBuffer {
