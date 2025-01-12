@@ -13,23 +13,35 @@ typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
 class WebSocketSender {
 public:
     WebSocketSender();
+    ~WebSocketSender();
 
     void run(const std::string& uri);
     void setHandlers(const std::string& pairId);
     void sendMessage(const std::string& message);
     void start(const std::string& uri);
-    void join();
+    void stop();
 
 private:
-    client wsClient;
-    websocketpp::connection_hdl connectionHandle;
-    std::mutex mutex_;  // Mutex to protect shared resources
-    bool isConnected;
-    std::thread wsThread;
-    std::string pairId_ = "0";
-
+    void handleClose(websocketpp::connection_hdl hdl);
+    void reconnectLoop();
     // Function called when WebSocket connection is opened
     void handleOpen(websocketpp::connection_hdl hdl, const std::string& pairId);
+
+private:
+    std::unique_ptr<client> wsClient;
+    websocketpp::connection_hdl connectionHandle;
+    std::atomic<bool> needReconnect_;
+    std::atomic<bool> stopReconnection_;
+    std::atomic<bool> isConnected;
+    std::mutex mutex_;  // Mutex to protect shared resources
+    std::thread wsThread;
+    std::thread reconnectThread;
+    std::string pairId_ = "0";
+	std::string uri_;
+	std::atomic<size_t> reconnectAttempts_;
+    static const size_t maxReconnectAttempts_ = 5;
+    static const size_t reconnectDelay_ = 1;
+
 };
 
 //int main() {

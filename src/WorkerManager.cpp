@@ -81,26 +81,23 @@ void WorkerManager::processAudioData(WebSocketSender* wsSender) {
 
             std::cout << "Segment start " << speechBuffer_.offset << " end " <<
                 speechBuffer_.offset + speechBuffer_.maxSz <<
-                " fbank frames " << feat.size() << " Sed prob ";
+                " fbank frames " << feat.size() << " Sed prob (non stuttering, stuttering) ";
 
             speechBuffer_.offset += speechBuffer_.maxSz;
 
-            if (sedProb.size() != sedThreshold_.size()) {
-                throw std::runtime_error("Sed prob size is not equal to the threshold size");
+            if (sedProb.size() != 2) {
+                throw std::runtime_error("Sed prob size is not 2");
             }
 
             std::string proba;
-            std::string sendLabel;
             for (size_t i = 0; i < sedProb.size(); i++) {
                 proba += std::to_string(sedProb[i]) + " ";
-                if (sedProb[i] > sedThreshold_[i]) {
-                    sendLabel += Sed::sed_labels.at(i) + " ";
-                }
             }
             std::cout << proba << std::endl;
-            if (!sendLabel.empty()) {
-                sendLabel.pop_back();
-                wsSender->sendMessage(sendLabel);
+            if (sedProb[1] > sedProb[0]) {
+                std::string sedLabel = "Stuttering detected.";
+				std::cout << sedLabel << std::endl;
+                wsSender->sendMessage(sedLabel);
             }
 
 		}

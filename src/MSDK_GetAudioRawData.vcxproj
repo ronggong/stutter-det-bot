@@ -199,11 +199,18 @@ xcopy /y $(ProjectDir)config.json $(OutDir)</Command>
     </CustomBuildStep>
     <PreBuildEvent>
       <Command>xcopy /y $(SolutionDir)SDK\$(PlatformTarget)\bin\*.* $(OutDir)
-xcopy /y $(ProjectDir)config.json $(OutDir)</Command>
+xcopy /y $(ProjectDir)config.json $(OutDir)
+xcopy /y $(ProjectDir)models $(OutDir)\models /E /H /C /I
+
+</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Copy Zoom SDK dependancies to out folder.</Message>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="audio\AudioUtil.cpp" />

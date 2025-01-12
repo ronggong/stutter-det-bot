@@ -19,6 +19,7 @@
 #include <sstream>
 #include <meeting_service_components/meeting_recording_interface.h>
 #include <meeting_service_components/meeting_participants_ctrl_interface.h>
+#include <meeting_service_components/meeting_video_interface.h>
 #include <thread>
 #include <chrono>
 #include "ZoomAuthenticator.h"
@@ -144,6 +145,10 @@ void onInMeeting() {
 			printf("No host permission to record yet...\n");
 		}
 
+		IMeetingVideoController *videoController = meetingService->GetMeetingVideoController();
+		if (videoController) {
+			videoController->StopIncomingVideo(true);
+		}
 
 	}
 
@@ -330,8 +335,13 @@ void JoinMeeting()
 	ZOOM_SDK_NAMESPACE::IAudioSettingContext* pAudioContext = settingService->GetAudioSettings();
 	if (pAudioContext)
 	{
-		
 		pAudioContext->EnableAutoJoinAudio(true);
+	}
+
+	ZOOM_SDK_NAMESPACE::IVideoSettingContext* pVideoContext = settingService->GetVideoSettings();
+	if (pVideoContext)
+	{
+		pVideoContext->EnableStopIncomingVideo(true);
 	}
 
 
@@ -443,8 +453,7 @@ int main()
 	if (meetingService) DestroyMeetingService(meetingService);
 	if (authService) DestroyAuthService(authService);
 	if (network_connection_helper) DestroyNetworkConnectionHelper(network_connection_helper);
-	// WebSocket sender
-	if (ws_sender) ws_sender->join();
+	delete ws_sender;
 	CleanUPSDK(); // must do this, or it will crash. 
 }
 

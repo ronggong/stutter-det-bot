@@ -47,5 +47,4 @@ private:
     } speechBuffer_;
 
     std::unique_ptr<Sed> sed_;
-    std::vector<float> sedThreshold_{ 0.42, 0.35, 0.37, 0.37, 0.4 };
 };
